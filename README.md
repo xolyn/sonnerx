@@ -5,6 +5,7 @@
 ## Why SonnerX?
 
 - **No module import dance** — Add one `<script src="sonnerx.js">`. The script injects its own styles, mounts the toaster, and exposes **`sonner`** on `globalThis` / `window`. No `type="module"`, no `import`, no separate CSS file unless you want one.
+- **Not React proprietary** — SonnerX is a plain HTML page toast library. It's not tied to any framework or library. Import from CDN or local file and you're good to go.
 - **Familiar API** — `sonner.push({ ... })` accepts the same core fields as the original Sonner-style API: `heading`, `message`, `duration`, `classes`, and `button` (`label`, `callback`, `classes`, optional `event` / `eventData`). You can also trigger toasts with `window.dispatchEvent(new CustomEvent('notify:sonner', { detail: { ... } }))`.
 - **Extra options** — **`position`** (`tl` | `tr` | `bl` | `br`) pins the stack to a corner and flips stacking direction for top vs bottom (newest-on-top behavior matches the corner). **`color_scheme`** (`dark` | `light`) picks the built-in palette per toast.
 - **Editable styles in one place** — All appearance tokens and rules live in the **`SONNER_CSS`** template string at the top of `sonnerx.js`. Edit that block and reload; no build step required.
