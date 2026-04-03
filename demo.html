@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        let color_scheme = 'dark';
+    </script>
+<center style="margin-top: 30dvh;">
+    <h1>SonnerX Demo</h1>
+
+    
+        <h3>Color Theme</h3>
+        <select name="" id="color_scheme" onchange='color_scheme = this.value'>
+            <option value="dark" selected >Dark</option>
+            <option value="light" >Light</option>
+        </select>
+        <h3>Position</h3>
+
+<button onclick='sonner.push({position: "tl",
+  color_scheme: color_scheme, message: "This is a notification",button: {
+    label: "Close",
+    callback: ()=>{},
+} })'>push (top left)</button>
+
+<button onclick='sonner.push({position: "tr",
+color_scheme: color_scheme, message: "This is a notification",button: {
+  label: "Close",
+  callback: ()=>{},
+} })'>push (top right)</button><br/>
+<button onclick='sonner.push({position: "bl",
+color_scheme: color_scheme, message: "This is a notification",button: {
+  label: "Close",
+  callback: ()=>{},
+} })'>push (bottom left)</button>
+
+<button onclick='sonner.push({position: "br",
+color_scheme: color_scheme, message: "This is a notification",button: {
+  label: "Close",
+  callback: ()=>{},
+} })'>push (bottom right)</button>
+
+</center>
+
+<script src="./sonnerx.js"></script>
+
+</body>
+</html>
