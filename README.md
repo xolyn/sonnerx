@@ -14,13 +14,16 @@
 
 ```html
 <script src="./sonnerx.js"></script>
+```
+```
 <script>
   sonner.push({
     heading: "Saved",
     message: "Your changes were applied.",
     duration: 5,
     position: "br",
-    color_scheme: "dark",
+    color_scheme: "light",
+    button: {label: 'OK',callback: ()=>{}}
   });
 </script>
 ```
