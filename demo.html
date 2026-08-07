@@ -2,49 +2,207 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Document</title>
+    <title>SonnerX Demo</title>
+    <style>
+        body {
+            font-family: inter, Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: #f9fafb;
+            color: #111827;
+        }
+        h1 {
+            text-align: center;
+        }
+        .panel {
+            max-width: 520px;
+            margin: 1.5rem auto;
+            background: #fff;
+            border: 1px solid #e4e4e7;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+        }
+        .panel h3 {
+            margin: 0 0 0.75rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #52525b;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .btn {
+            padding: 0.5rem 0.9rem;
+            border: 1px solid #d4d4d8;
+            border-radius: 0.5rem;
+            background: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+        .btn:hover {
+            background: #f4f4f5;
+        }
+        .copy-wrap {
+            position: relative;
+            margin-top: 0.75rem;
+        }
+        input[type="number"] {
+            padding: 0.5rem 0.6rem;
+            border: 1px solid #d4d4d8;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            color: #18181b;
+            background: #fff;
+        }
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.6rem 0.7rem;
+            border: 1px solid #d4d4d8;
+            border-radius: 0.5rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #18181b;
+            background: #fafafa;
+            resize: vertical;
+            min-height: 70px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.4rem;
+            white-space: nowrap;
+        }
+        label.radio {
+            display: inline-flex;
+            gap: 0.4rem;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .section-label {
+            font-size: 0.85rem;
+            color: #52525b;
+            margin-bottom: 0.4rem;
+        }
+        .hint {
+            font-size: 0.75rem;
+            color: #71717a;
+            margin-top: 0.5rem;
+        }
+    </style>
 </head>
 <body>
-    <script>
-        let color_scheme = 'dark';
-    </script>
-<center style="margin-top: 30dvh;">
     <h1>SonnerX Demo</h1>
 
-    
+    <!-- Stack depth -->
+    <div class="panel">
+        <h3>Max Stack</h3>
+        <div class="row">
+            <label for="max_stack" class="section-label" style="margin:0;">Stack depth (2–10):</label>
+            <input type="number" id="max_stack" min="2" max="10" value="5" oninput="updateScript()" style="max-width: 90px;">
+        </div>
+        <div class="copy-wrap">
+            <textarea id="script_import" readonly onclick="this.select()" rows="2"></textarea>
+            <button class="btn copy-btn" onclick="copyToClipboard('script_import')">Copy</button>
+        </div>
+        <p class="hint">Start by importing SonnerX. The stack number above updates this snippet. Below <code>2</code> clamps to <code>2</code>, above <code>10</code> clamps to <code>10</code>.</p>
+    </div>
+
+    <!-- Color Theme -->
+    <div class="panel">
         <h3>Color Theme</h3>
-        <select name="" id="color_scheme" onchange='color_scheme = this.value'>
-            <option value="dark" selected >Dark</option>
-            <option value="light" >Light</option>
-        </select>
+        <div class="row">
+            <label class="radio"><input type="radio" name="color_scheme" value="dark" checked onchange="updatePush()"> Dark</label>
+            <label class="radio"><input type="radio" name="color_scheme" value="light" onchange="updatePush()"> Light</label>
+        </div>
+        <div class="copy-wrap">
+            <textarea id="push_code" readonly onclick="this.select()" rows="5"></textarea>
+            <button class="btn copy-btn" onclick="copyToClipboard('push_code')">Copy</button>
+        </div>
+    </div>
+
+    <!-- Position -->
+    <div class="panel">
         <h3>Position</h3>
+        <div class="row">
+            <button class="btn" onclick="push('tl')">Top Left</button>
+            <button class="btn" onclick="push('tr')">Top Right</button>
+            <button class="btn" onclick="push('bl')">Bottom Left</button>
+            <button class="btn" onclick="push('br')">Bottom Right</button>
+        </div>
+        <p class="hint">The copy box above reflects the selected color scheme and position — click a position button (or change theme) to live-preview and update it.</p>
+    </div>
 
-<button onclick='sonner.push({position: "tl",
-  color_scheme: color_scheme, message: "This is a notification",button: {
-    label: "Close",
-    callback: ()=>{},
-} })'>push (top left)</button>
+    <script src="https://static.zlybox.eu.org/js/sonnerx.js"></script>
+    <script>
+        let color_scheme = 'dark';
+        let position = 'br';
 
-<button onclick='sonner.push({position: "tr",
-color_scheme: color_scheme, message: "This is a notification",button: {
-  label: "Close",
-  callback: ()=>{},
-} })'>push (top right)</button><br/>
-<button onclick='sonner.push({position: "bl",
-color_scheme: color_scheme, message: "This is a notification",button: {
-  label: "Close",
-  callback: ()=>{},
-} })'>push (bottom left)</button>
+        function clampStack(n) {
+            n = parseInt(n, 10);
+            if (Number.isNaN(n)) n = 5;
+            return Math.min(10, Math.max(2, n));
+        }
 
-<button onclick='sonner.push({position: "br",
-color_scheme: color_scheme, message: "This is a notification",button: {
-  label: "Close",
-  callback: ()=>{},
-} })'>push (bottom right)</button>
+        function maxStack() {
+            return clampStack(document.getElementById('max_stack').value);
+        }
 
-</center>
+        function renderPush() {
+            let js =
+                "sonner.push({\n" +
+                '  position: "' + position + '",\n' +
+                '  color_scheme: "' + color_scheme + '",\n' +
+                '  message: "<b>通知</b><br>这是一个来自SonnerX的推送信息",\n' +
+                '  button: { label: "好", callback: () => {} },\n' +
+                "});";
+            document.getElementById('push_code').value = js;
+        }
 
-<script src="./sonnerx.js"></script>
+        function renderScript() {
+            document.getElementById('script_import').value =
+                '<script src="https://static.zlybox.eu.org/js/sonnerx.js" data-max-stack="' + maxStack() + '"><\/script>';
+        }
 
+        function updateScript() {
+            renderScript();
+        }
+
+        function updatePush() {
+            color_scheme = document.querySelector('input[name="color_scheme"]:checked').value;
+            renderPush();
+        }
+
+        function push(p) {
+            position = p;
+            renderPush();
+            sonner.push({
+                position: p,
+                color_scheme: color_scheme,
+                message: "<b>通知</b><br>这是一个来自SonnerX的推送信息",
+                button: { label: "好", callback: () => {} },
+            });
+        }
+
+        async function copyToClipboard(id) {
+            try {
+                await navigator.clipboard.writeText(document.getElementById(id).value);
+            } catch (err) {
+                let el = document.getElementById(id);
+                el.select();
+                document.execCommand('copy');
+            }
+        }
+
+        renderScript();
+        renderPush();
+    </script>
 </body>
 </html>

@@ -211,6 +211,16 @@ sonner-toast-component[data-color-scheme="light"] {
 
 var SONNER_POSITIONS = { br: 1, bl: 1, tr: 1, tl: 1 };
 var SONNER_SCHEMES = { dark: 1, light: 1 };
+var SONNER_MAX_STACK = 5;
+var SONNER_SCRIPT = document.currentScript || Array.prototype.slice.call(document.scripts).pop();
+
+function sonnerResolveMaxStack() {
+    var raw = SONNER_SCRIPT && SONNER_SCRIPT.getAttribute ? SONNER_SCRIPT.getAttribute("data-max-stack") : null;
+    var n = parseInt(raw, 10);
+    if (raw != null && Number.isFinite(n)) n = Math.min(10, Math.max(2, n));
+    else n = SONNER_MAX_STACK;
+    return n;
+}
 
 function sonnerNormalizePosition(v) {
     if (v != null && SONNER_POSITIONS[v]) return v;
@@ -231,8 +241,9 @@ function sonnerStackFromTop(position) {
 var SonnerHost = class extends HTMLElement {
     constructor() {
         super();
+        this.maxStack = sonnerResolveMaxStack();
         this.previous = void 0;
-        this.queue = Array(3).fill(null);
+        this.queue = Array(this.maxStack).fill(null);
         this.doUpdate = !0;
         this.skipNextUpdate = !1;
         this.timeoutID = void 0;
@@ -269,14 +280,14 @@ var SonnerHost = class extends HTMLElement {
         this.dataset.stack = sonnerStackFromTop(position) ? "top" : "bottom";
     }
     collapse() {
-        for (let e = 0; e < 3; e++) {
+        for (let e = 0; e < this.maxStack; e++) {
             if (this.queue[e] !== null) this.queue[e].el.collapse();
         }
         this.style.height = "0px";
     }
     expand() {
         let acc = 0;
-        for (let t = 0; t < 3; t++) {
+        for (let t = 0; t < this.maxStack; t++) {
             if (this.queue[t] !== null) {
                 this.queue[t].el.expand(acc, this.dataset.stack === "top");
                 acc += this.queue[t].el.height + 8;
@@ -290,7 +301,7 @@ var SonnerHost = class extends HTMLElement {
         if (this.doUpdate) {
             if (this.skipNextUpdate) this.skipNextUpdate = !1;
             else {
-                for (let s = 0; s < 3; s++) {
+                for (let s = 0; s < this.maxStack; s++) {
                     if (this.queue[s] !== null) {
                         if (this.queue[s].el.isConnected) this.queue[s]?.el?.update(dt);
                         else this.queue[s] = null;
@@ -302,7 +313,7 @@ var SonnerHost = class extends HTMLElement {
         window.requestAnimationFrame(this.loop.bind(this));
     }
     reconcile() {
-        for (let e = 2; e >= 0; e--) {
+        for (let e = this.maxStack - 1; e >= 0; e--) {
             if (this.queue[e] !== null) {
                 if (e === 0) break;
                 if (this.queue[e - 1] === null) {
@@ -311,7 +322,7 @@ var SonnerHost = class extends HTMLElement {
                 }
             }
         }
-        for (let e = 0; e < 3; e++) {
+        for (let e = 0; e < this.maxStack; e++) {
             if (this.queue[e] !== null) this.queue[e].el.updateIndex(e);
         }
     }
@@ -356,9 +367,10 @@ var SonnerHost = class extends HTMLElement {
         this.insert(t);
     }
     insert(e) {
-        if (this.queue[2] !== null) this.queue[2]?.el?.delete();
-        if (this.queue[1] !== null) this.queue[2] = this.queue[1];
-        if (this.queue[0] !== null) this.queue[1] = this.queue[0];
+        if (this.queue[this.maxStack - 1] !== null) this.queue[this.maxStack - 1]?.el?.delete();
+        for (let s = this.maxStack - 1; s > 0; s--) {
+            if (this.queue[s - 1] !== null) this.queue[s] = this.queue[s - 1];
+        }
         this.queue[0] = e;
         this.appendChild(this.queue[0].el);
     }
@@ -455,17 +467,7 @@ var SonnerToast = class extends HTMLElement {
     }
     updateIndex(e) {
         this.index = e;
-        switch (e) {
-            case 0:
-                this.style.zIndex = "3";
-                break;
-            case 1:
-                this.style.zIndex = "2";
-                break;
-            case 2:
-                this.style.zIndex = "1";
-                break;
-        }
+        this.style.zIndex = String((this.closest("sonner-component")?.maxStack || SONNER_MAX_STACK) - e);
         this.offset = 16 * e;
         this.scale = 1 - 0.05 * e;
         let fromTop = this.stackTop();
